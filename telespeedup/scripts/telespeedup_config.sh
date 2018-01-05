@@ -144,7 +144,7 @@ sleep 2
 telespeedup_get_status
 eval "$scriptfilepath keep &"
 
-sed -i '/qiandao/d' /etc/crontabs/root
+sed -i '/telespeedup/d' /etc/crontabs/root
 echo "*/3 * * * * rm -rf $logfile" >> /etc/crontabs/root
 }
 
