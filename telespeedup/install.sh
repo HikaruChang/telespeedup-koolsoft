@@ -11,6 +11,7 @@ cp -rf /tmp/telespeedup/webs/* $KSROOT/webs/
 cp -rf /tmp/telespeedup/uninstall.sh $KSROOT/scripts/uninstall_telespeedup.sh
 
 chmod +x $KSROOT/scripts/telespeedup_*
+chmod +x $KSROOT/init.d/S99telespeedup*
 rm -rf $KSROOT/install.sh
 
 # add icon into softerware center

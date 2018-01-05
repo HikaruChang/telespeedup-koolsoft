@@ -15,8 +15,8 @@ done
 # remove files
 rm -rf $KSROOT/bin/telespeedup*
 rm -rf $KSROOT/scripts/uninstall_telespeedup*
-rm -rf $KSROOT/init.d/S95telespeedup.sh
-rm -rf /etc/rc.d/S95telespeedup.sh >/dev/null 2>&1
+rm -rf $KSROOT/init.d/S99telespeedup.sh
+rm -rf /etc/rc.d/S99telespeedup.sh >/dev/null 2>&1
 rm -rf $KSROOT/webs/Module_telespeedup.asp
 rm -rf $KSROOT/webs/res/icon-telespeedup.png
 rm -rf $KSROOT/webs/res/icon-telespeedup-bg.png
