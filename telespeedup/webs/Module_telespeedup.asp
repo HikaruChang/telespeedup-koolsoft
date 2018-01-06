@@ -303,7 +303,7 @@ function get_log(){
 
 </script>
 <div class="box">
-	<div class="heading">家庭云提速 0.1 内测版<a href="#/soft-center.asp" class="btn" style="float:right;border-radius:3px;margin-right:5px;margin-top:0px;">返回</a></div>
+	<div class="heading">家庭云提速 0.2 内测版<a href="#/soft-center.asp" class="btn" style="float:right;border-radius:3px;margin-right:5px;margin-top:0px;">返回</a></div>
 	<div class="content">
 		<span class="col" style="line-height:30px;width:700px">
 		Program:hiboy<br />

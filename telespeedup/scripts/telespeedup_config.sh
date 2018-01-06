@@ -11,16 +11,16 @@ source $KSROOT/scripts/base.sh
 eval `dbus export telespeedup_`
 
 [ -z $telespeedup_enable ] && telespeedup_enable=0
-telespeedup_path="/koolshare/bin/telespeedup"
+telespeedup_path="$KSROOT/bin/telespeedup"
 if [ "$telespeedup_enable" != "0" ] ; then
 	[ -z "$telespeedup_Info" ] && telespeedup_Info=1
 	Info="$telespeedup_Info"
 	[ -z "$Info" ] && Info=1
 	STATUS="N"
 	SN=""
-	check_Qos="$telespeedup_check_Qos"
-	Start_Qos="$telespeedup_Start_Qos"
-	Heart_Qos="$telespeedup_Heart_Qos"
+	check_Qos="$(echo $telespeedup_check_Qos | base64_decode)"
+	Start_Qos="$(echo $telespeedup_Start_Qos | base64_decode)"
+	Heart_Qos="$(echo $telespeedup_Heart_Qos | base64_decode)"
 fi
 
 
