@@ -313,7 +313,7 @@ SN_STAT="$(eval "$start_Qos_x" | grep qosInfo)"
 
 SN="$(echo "$SN_STAT" | awk -F"\<qosSn\>|\<\/qosSn\>" '{if($2!="") print $2}')"
 
-echo `date "+%Y-%m-%d %H:%M:%S"` "Start telespeedup, SN: $SN"
+echo_date "启动家庭云加速, SN: $SN" >> $logfile
 sleep 3
 }
 
