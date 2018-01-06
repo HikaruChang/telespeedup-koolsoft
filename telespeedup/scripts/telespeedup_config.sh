@@ -36,7 +36,6 @@ if [ "$1" = "o" ] ; then
 fi
 if [ "$1" = "x" ] ; then
 	if [ -f $relock ] ; then
-		echo_date "【家庭云提速】" "多次尝试启动失败，等待【"`cat $relock`"分钟】后自动尝试重新启动" >> $logfile
 		exit 0
 	fi
 	telespeedup_renum=${telespeedup_renum:-"0"}
@@ -45,7 +44,6 @@ if [ "$1" = "x" ] ; then
 	if [ "$telespeedup_renum" -gt "2" ] ; then
 		I=19
 		echo $I > $relock
-		echo_date "【家庭云提速】" "多次尝试启动失败，等待【"`cat $relock`"分钟】后自动尝试重新启动" >> $logfile
 		while [ $I -gt 0 ]; do
 			I=$(($I - 1))
 			echo $I > $relock
@@ -79,7 +77,7 @@ telespeedup_check () {
 
 telespeedup_get_status
 if [ "$telespeedup_enable" != "1" ] && [ "$needed_restart" = "1" ] ; then
-	[ ! -z "$(ps -w | grep "$telespeedup_path" | grep -v grep )" ] && echo_date "【家庭云提速】" "停止 telespeedup" >> $logfile && telespeedup_close
+	[ ! -z "$(ps -w | grep "$telespeedup_path" | grep -v grep )" ] && telespeedup_close
 	{ eval $(ps -w | grep "$scriptname" | grep -v grep | awk '{print "kill "$1";";}'); exit 0; }
 fi
 if [ "$telespeedup_enable" = "1" ] ; then
@@ -93,14 +91,12 @@ fi
 }
 
 telespeedup_keep () {
-echo_date "【家庭云提速】" "守护进程启动" >> $logfile
 sleep 60
 telespeedup_enable=`dbus get telespeedup_enable` #telespeedup_enable
 i=1
 while [ "$telespeedup_enable" = "1" ]; do
 	NUM=`ps -w | grep "$telespeedup_path" | grep -v grep |wc -l`
 	if [ "$NUM" -lt "1" ] || [ ! -s "$telespeedup_path" ] || [ "$i" -ge 369 ] ; then
-		echo_date "【家庭云提速】" "重新启动$NUM" >> $logfile
 		telespeedup_restart
 	fi
 sleep 69
@@ -112,8 +108,18 @@ done
 telespeedup_close () {
 killall telespeedup
 killall -9 telespeedup
-rm -rf $logfile
-sed -i '/telespeedup/d' /etc/crontabs/root
+
+dbus set telespeedup_sn=''
+dbus set telespeedup_prodName=''
+dbus set telespeedup_prodCode=''
+dbus set telespeedup_restMinutes='0'
+dbus set telespeedup_totalMinutes='0'
+dbus set telespeedup_upRate='0'
+dbus set telespeedup_upQosRate='0'
+dbus set telespeedup_downRate='0'
+dbus set telespeedup_downQosRate='0'
+dbus set telespeedup_remainingTime='0'
+
 eval $(ps -w | grep "telespeedup start_path" | grep -v grep | awk '{print "kill "$1";";}')
 eval $(ps -w | grep "telespeedup_config.sh keep" | grep -v grep | awk '{print "kill "$1";";}')
 eval $(ps -w | grep "$scriptname keep" | grep -v grep | awk '{print "kill "$1";";}')
@@ -121,37 +127,32 @@ eval $(ps -w | grep "$scriptname keep" | grep -v grep | awk '{print "kill "$1";"
 
 telespeedup_start () {
 
-[ -z "$check_Qos" ] && echo_date "【家庭云提速】" "错误！！！【Check代码】未填写" >> $logfile && sleep 10 && exit
-[ -z "$Start_Qos" ] && echo_date "【家庭云提速】" "错误！！！【Start代码】未填写" >> $logfile && sleep 10 && exit
+[ -z "$check_Qos" ] && sleep 10 && exit
+[ -z "$Start_Qos" ] && sleep 10 && exit
 
 curltest=`which curl`
 if [ -z "$curltest" ] || [ ! -s "`which curl`" ] ; then
-	echo_date "【家庭云提速】" "找不到 curl ，正在尝试安装" >> $logfile
 	opkg update && opkg install curl
-	echo_date "【家庭云提速】" "10 秒后自动尝试重新启动" >> $logfile && sleep 10 && telespeedup_restart x
+	sleep 10 && telespeedup_restart x
 fi
 
 telespeedup_vv=2018-01-06
 telespeedup_v=$(grep 'telespeedup_vv=' /koolshare/scripts/telespeedup_config.sh | grep -v 'telespeedup_v=' | awk -F '=' '{print $2;}')
-echo_date "【家庭云提速】" "运行 $telespeedup_path" >> $logfile
 ln -sf /koolshare/scripts/telespeedup_config.sh /koolshare/bin/telespeedup
 chmod 777 /koolshare/bin/telespeedup
 eval "$telespeedup_path" start_path &
 sleep 2
-[ ! -z "$(ps -w | grep "/koolshare/bin/telespeedup" | grep -v grep )" ] && echo_date "【家庭云提速】" "启动成功 $telespeedup_v " >> $logfile && telespeedup_restart o
-[ -z "$(ps -w | grep "/koolshare/bin/telespeedup" | grep -v grep )" ] && echo_date "【家庭云提速】" "启动失败, 注意检查端口是否有冲突,程序是否下载完整,10 秒后自动尝试重新启动" >> $logfile && sleep 10 && telespeedup_restart x
+[ ! -z "$(ps -w | grep "/koolshare/bin/telespeedup" | grep -v grep )" ]  && telespeedup_restart o
+[ -z "$(ps -w | grep "/koolshare/bin/telespeedup" | grep -v grep )" ] && sleep 10 && telespeedup_restart x
 
 telespeedup_get_status
 eval "$scriptfilepath keep &"
-
-sed -i '/telespeedup/d' /etc/crontabs/root
-echo "*/3 * * * * rm -rf $logfile" >> /etc/crontabs/root
 }
 
 telespeedup_start_path () {
 
 # 主程序循环
-re_STAT="$(eval "$check_Qos" | grep qosListResponse)"
+re_STAT="$(eval "$Start_Qos")"
 
 # 获取提速包数量
 qos_Info="$(echo "$re_STAT" | awk -F"/qosInfo" '{print NF-1}')"
@@ -164,57 +165,113 @@ if [[ "$qos_Info" -ge 1 ]]; then
 qos_Info_1="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $1}')"
 qos_Info_x="$qos_Info_1"
 get_info
-echo_date "【家庭云提速】" "包【1】 提速状态【$re_STATUS】 提速包名称【$prod_Name】 提速包代码【$prod_Code】 提速包时间【$used_Minutes/$total_Minutes】" >> $logfile
+dbus set telespeedup_prodName=$prod_Name
+dbus set telespeedup_prodCode=$prod_Code
+dbus set telespeedup_restMinutes=$rest_Minutes
+dbus set telespeedup_totalMinutes=$total_Minutes
+dbus set telespeedup_upRate=$up_rate
+dbus set telespeedup_upQosRate=$up_qos_rate
+dbus set telespeedup_downRate=$down_rate
+dbus set telespeedup_downQosRate=$down_qos_rate
+dbus set telespeedup_remainingTime=$remaining_Time
 fi
 if [[ "$qos_Info" -ge 2 ]]; then
 # 提速包2
 qos_Info_2="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $2}')"
 qos_Info_x="$qos_Info_2"
 get_info
-echo_date "【家庭云提速】" "包【2】 提速状态【$re_STATUS】 提速包名称【$prod_Name】 提速包代码【$prod_Code】 提速包时间【$used_Minutes/$total_Minutes】" >> $logfile
+dbus set telespeedup_prodName=$prod_Name
+dbus set telespeedup_prodCode=$prod_Code
+dbus set telespeedup_restMinutes=$rest_Minutes
+dbus set telespeedup_totalMinutes=$total_Minutes
+dbus set telespeedup_upRate=$up_rate
+dbus set telespeedup_upQosRate=$up_qos_rate
+dbus set telespeedup_downRate=$down_rate
+dbus set telespeedup_downQosRate=$down_qos_rate
+dbus set telespeedup_remainingTime=$remaining_Time
 fi
 if [[ "$qos_Info" -ge 3 ]]; then
 # 提速包3
 qos_Info_3="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $3}')"
 qos_Info_x="$qos_Info_3"
 get_info
-echo_date "【家庭云提速】" "包【3】 提速状态【$re_STATUS】 提速包名称【$prod_Name】 提速包代码【$prod_Code】 提速包时间【$used_Minutes/$total_Minutes】" >> $logfile
+dbus set telespeedup_prodName=$prod_Name
+dbus set telespeedup_prodCode=$prod_Code
+dbus set telespeedup_restMinutes=$rest_Minutes
+dbus set telespeedup_totalMinutes=$total_Minutes
+dbus set telespeedup_upRate=$up_rate
+dbus set telespeedup_upQosRate=$up_qos_rate
+dbus set telespeedup_downRate=$down_rate
+dbus set telespeedup_downQosRate=$down_qos_rate
+dbus set telespeedup_remainingTime=$remaining_Time
 fi
 if [[ "$qos_Info" -ge 4 ]]; then
 # 提速包4
 qos_Info_4="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $4}')"
 qos_Info_x="$qos_Info_4"
 get_info
-echo_date "【家庭云提速】" "包【4】 提速状态【$re_STATUS】 提速包名称【$prod_Name】 提速包代码【$prod_Code】 提速包时间【$used_Minutes/$total_Minutes】" >> $logfile
+dbus set telespeedup_prodName=$prod_Name
+dbus set telespeedup_prodCode=$prod_Code
+dbus set telespeedup_restMinutes=$rest_Minutes
+dbus set telespeedup_totalMinutes=$total_Minutes
+dbus set telespeedup_upRate=$up_rate
+dbus set telespeedup_upQosRate=$up_qos_rate
+dbus set telespeedup_downRate=$down_rate
+dbus set telespeedup_downQosRate=$down_qos_rate
+dbus set telespeedup_remainingTime=$remaining_Time
 fi
 if [[ "$qos_Info" -ge 5 ]]; then
 # 提速包5
 qos_Info_5="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $5}')"
 qos_Info_x="$qos_Info_5"
 get_info
-echo_date "【家庭云提速】" "包【5】 提速状态【$re_STATUS】 提速包名称【$prod_Name】 提速包代码【$prod_Code】 提速包时间【$used_Minutes/$total_Minutes】" >> $logfile
+dbus set telespeedup_prodName=$prod_Name
+dbus set telespeedup_prodCode=$prod_Code
+dbus set telespeedup_restMinutes=$rest_Minutes
+dbus set telespeedup_totalMinutes=$total_Minutes
+dbus set telespeedup_upRate=$up_rate
+dbus set telespeedup_upQosRate=$up_qos_rate
+dbus set telespeedup_downRate=$down_rate
+dbus set telespeedup_downQosRate=$down_qos_rate
+dbus set telespeedup_remainingTime=$remaining_Time
 fi
 
 
 QOS_Status
-echo_date "【家庭云提速】" "包【$Info】 提速状态【$re_STATUS】 重置时间【$remaining_Time】 提速包名称【$prod_Name】 提速包代码【$prod_Code】 提速包时间【$used_Minutes/$total_Minutes】" >> $logfile
+dbus set telespeedup_prodName=$prod_Name
+dbus set telespeedup_prodCode=$prod_Code
+dbus set telespeedup_restMinutes=$rest_Minutes
+dbus set telespeedup_totalMinutes=$total_Minutes
+dbus set telespeedup_upRate=$up_rate
+dbus set telespeedup_upQosRate=$up_qos_rate
+dbus set telespeedup_downRate=$down_rate
+dbus set telespeedup_downQosRate=$down_qos_rate
+dbus set telespeedup_remainingTime=$remaining_Time
+
 #QOS_Start
-[ -z "$SN" ] && SN=0
+[ -z "$qos_sn" ] && qos_sn=0
 telespeedup_enable=`dbus get telespeedup_enable`
 [ -z $telespeedup_enable ] && telespeedup_enable=0 && dbus set telespeedup_enable=0
 while [[ "$telespeedup_enable" != 0 ]]
 do
 	if [[ "$STATUS"x != "Y"x ]]; then
-		echo_date "【家庭云提速】" "状态 $STATUS , 来一发加速吧！" >> $logfile
 		QOS_Start
-		if [[ -z "$SN" ]]; then
-			echo_date "【家庭云提速】" "启动错误！" >> $logfile
+		if [[ -z "$qos_sn" ]]; then
+			dbus set telespeedup_sn="启动错误！"
 		else
-			echo_date "【家庭云提速】" "启动家庭云提速, SN: $SN" >> $logfile
+			dbus set telespeedup_sn=$qos_sn
 			[ ! -z "$Heart_Qos" ] && QOS_Heart
 			sleep 57
 			QOS_Status
-			echo_date "【家庭云提速】" "包【$Info】 提速状态【$re_STATUS】 重置时间【$remaining_Time】 提速包名称【$prod_Name】 提速包代码【$prod_Code】 提速包时间【$used_Minutes/$total_Minutes】" >> $logfile
+			dbus set telespeedup_prodName=$prod_Name
+			dbus set telespeedup_prodCode=$prod_Code
+			dbus set telespeedup_restMinutes=$rest_Minutes
+			dbus set telespeedup_totalMinutes=$total_Minutes
+			dbus set telespeedup_upRate=$up_rate
+			dbus set telespeedup_upQosRate=$up_qos_rate
+			dbus set telespeedup_downRate=$down_rate
+			dbus set telespeedup_downQosRate=$down_qos_rate
+			dbus set telespeedup_remainingTime=$remaining_Time
 			if [[ "$STATUS"x == "Y"x ]]; then
 				[ ! -z "$Heart_Qos" ] && QOS_Heart
 				sleep 57
@@ -222,7 +279,6 @@ do
 		fi
 	fi
 	QOS_Status
-	#echo_date "【家庭云提速】" "包【$Info】 提速状态【$re_STATUS】 重置时间【$remaining_Time】 提速包名称【$prod_Name】 提速包代码【$prod_Code】 提速包时间【$used_Minutes/$total_Minutes】" >> $logfile
 	if [[ "$STATUS"x == "Y"x ]]; then
 		[ ! -z "$Heart_Qos" ] && QOS_Heart
 		sleep 57
@@ -237,14 +293,34 @@ get_info()
 {
 # 提速包名称
 prod_Name="$(echo "$qos_Info_x" | awk -F"\<prodName\>|\<\/prodName\>" '{if($2!="") print $2}')"
+
 # 提速包代码
 prod_Code="$(echo "$qos_Info_x" | awk -F"\<prodCode\>|\<\/prodCode\>" '{if($2!="") print $2}')"
+
 # 提速包总时间（分钟）
 total_Minutes="$(echo "$qos_Info_x" | awk -F"\<totalMinutes\>|\<\/totalMinutes\>" '{if($2!="") print $2}')"
+
 # 提速包使用时间（分钟）
 used_Minutes="$(echo "$qos_Info_x" | awk -F"\<usedMinutes\>|\<\/usedMinutes\>" '{if($2!="") print $2}')"
-# 提速状态
-re_STATUS="$(echo "$qos_Info_x" | awk -F"\<istelespeedup\>|\<\/istelespeedup\>" '{if($2!="") print $2}')"
+
+# 提速包剩余时长（分钟）
+rest_Minutes="$(echo "$qos_Info_x" | awk -F"\<restMinutes\>|\<\/restMinutes\>" '{if($2!="") print $2}')"
+
+# 原本上行速率（M）
+up_rate="$(echo `expr $(echo "$qos_Info_x" | awk -F"\<upRate\>|\<\/upRate\>" '{if($2!="") print $2}') / 1024`)"
+
+# 提升后上行速率（M）
+up_qos_rate="$(echo `expr $(echo "$qos_Info_x" | awk -F"\<upQosRate\>|\<\/upQosRate\>" '{if($2!="") print $2}') / 1024`)"
+
+# 原本下行速率（M）
+down_rate="$(echo `expr $(echo "$qos_Info_x" | awk -F"\<downRate\>|\<\/downRate\>" '{if($2!="") print $2}') / 1024`)"
+
+# 提升后下行速率（M）
+down_qos_rate="$(echo `expr $(echo "$qos_Info_x" | awk -F"\<downQosRate\>|\<\/downQosRate\>" '{if($2!="") print $2}') / 1024`)"
+
+# SN
+qos_sn="$(echo "$qos_Info_x" | awk -F"\<qosSn\>|\<\/qosSn\>" '{if($2!="") print $2}')"
+
 # 重置剩余时间
 remaining_Time="$(echo "$qos_Info_x" | awk -F"\<remainingTime\>|\<\/remainingTime\>" '{if($2!="") print $2}')"
 
@@ -305,23 +381,15 @@ QOS_Start()
 #Signa_ture="$(echo "$Start_Qos" | grep -Eo "Signature:[ A-Za-z0-9_-]+" | cut -d ':' -f2 | sed -e "s/ //g" )"
 #GMT_Date="$(echo "$Start_Qos" | grep -Eo "Date:[ A-Za-z0-9_-]+,[ A-Za-z0-9_-]+:[0-9]+:[ A-Za-z0-9_-]+" | awk -F 'Date: ' '{print $2}')"
 
-#start_Qos_x="curl -s -H 'SessionKey: ""$Session_Key""' -H 'Signature: ""$Signa_ture""' -H 'Date: ""$GMT_Date""' -H 'Content-Type: text/xml; charset=utf-8' -H 'Host: api.cloud.189.cn' -H 'User-Agent: Apache-HttpClient/UNAVAILABLE (java 1.4)' 'http://api.cloud.189.cn/family/qos/startQos.action?prodCode=""$prod_Code""'"
-
-start_Qos_x="$(echo "$Start_Qos"" -s ")"
-
-SN_STAT="$(eval "$start_Qos_x" | grep qosInfo)"
-
-SN="$(echo "$SN_STAT" | awk -F"\<qosSn\>|\<\/qosSn\>" '{if($2!="") print $2}')"
-
-echo_date "启动家庭云加速, SN: $SN" >> $logfile
+dbus set telespeedup_sn=$qos_sn
 sleep 3
 }
 
 QOS_Heart()
 {
 
-if [ "$SN"x != "x" ] && [ "$SN" != "0" ] ; then
-	Heart_Qos_x="$(echo "$Heart_Qos" | sed -e "s|^\(.*qosSn.*\)=[^=]*$|\1=$SN|")"
+if [ "$qos_sn"x != "x" ] && [ "$qos_sn" != "0" ] ; then
+	Heart_Qos_x="$(echo "$Heart_Qos" | sed -e "s|^\(.*qosSn.*\)=[^=]*$|\1=$qos_sn|")"
 	Heart_Qos_x="$(echo "$Heart_Qos_x""' -s ")"
 	eval "$Heart_Qos_x"
 

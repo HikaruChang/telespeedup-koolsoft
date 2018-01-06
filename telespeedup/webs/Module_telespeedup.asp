@@ -17,7 +17,6 @@ var reload = 0;
 var Scorll = 1;
 get_dbus_data();
 setTimeout("get_run_status();", 1000);
-tabSelect('app1');
 
 if (typeof btoa == "Function") {
   Base64 = {
@@ -124,6 +123,10 @@ if (typeof btoa == "Function") {
   }
 }
 //============================================
+function init_telespeedup(){
+  verifyFields();
+}
+
 
 function get_dbus_data(){
 	$.ajax({
@@ -165,9 +168,11 @@ function get_run_status(){
 
 function verifyFields(focused, quiet){
 	if(E('_telespeedup_enable').checked){
-		$('input').prop('disabled', false);
+		$('textarea').prop('disabled', false);
+    $('input').prop('disabled', false);
 		$('select').prop('disabled', false);
 	}else{
+    $('textarea').prop('disabled', true);
 		$('input').prop('disabled', true);
 		$('select').prop('disabled', true);
 		$(E('_telespeedup_enable')).prop('disabled', false);
@@ -185,34 +190,6 @@ function toggleVisibility(whichone) {
 		E('sesdiv' + whichone + 'showhide').innerHTML='<i class="icon-chevron-down"></i>';
 		cookie.set('ss_' + whichone + '_vis', 1);
 	}
-}
-
-function tabSelect(obj){
-	var tableX = ['app1-server1-jb-tab','app3-server1-rz-tab'];
-	var boxX = ['boxr1','boxr3'];
-	var appX = ['app1','app3'];
-	for (var i = 0; i < tableX.length; i++){
-		if(obj == appX[i]){
-			$('#'+tableX[i]).addClass('active');
-			$('.'+boxX[i]).show();
-		}else{
-			$('#'+tableX[i]).removeClass('active');
-			$('.'+boxX[i]).hide();
-		}
-	}
-	if(obj=='app3'){
-		setTimeout("get_log();", 400);
-		elem.display('save-button', false);
-		elem.display('cancel-button', false);
-	}else{
-		elem.display('save-button', true);
-		elem.display('cancel-button', true);
-	}
-}
-
-function showMsg(Outtype, title, msg){
-	$('#'+Outtype).html('<h5>'+title+'</h5>'+msg+'<a class="close"><i class="icon-cancel"></i></a>');
-	$('#'+Outtype).show();
 }
 
 function save(){
@@ -261,67 +238,43 @@ function save(){
 	});
 }
 
-function get_log(){
-	$.ajax({
-		url: '/_temp/telespeedup_log.txt',
-		type: 'GET',
-		cache:false,
-		dataType: 'text',
-		success: function(response) {
-			var retArea = E("_telespeedup_log");
-			if (response.search("XU6J03M6") != -1) {
-				retArea.value = response.replace("XU6J03M6", " ");
-				retArea.scrollTop = retArea.scrollHeight;
-				if (reload == 1){
-					setTimeout("window.location.reload()", 1200);
-					return true;
-				}else{
-					return true;
-				}
-			}
-			if (_responseLen == response.length) {
-				noChange++;
-			} else {
-				noChange = 0;
-			}
-			if (noChange > 1000) {
-				tabSelect("app1");
-				return false;
-			} else {
-				setTimeout("get_log();", 200);
-			}
-			retArea.value = response.replace("XU6J03M6", " ");
-			retArea.scrollTop = retArea.scrollHeight;
-			_responseLen = response.length;
-		},
-		error: function() {
-			E("_telespeedup_log").value = "获取日志失败！";
-			return false;
-		}
-	});
-}
-
 </script>
 <div class="box">
-	<div class="heading">家庭云提速 0.3 内测版<a href="#/soft-center.asp" class="btn" style="float:right;border-radius:3px;margin-right:5px;margin-top:0px;">返回</a></div>
+	<div class="heading">家庭云提速 1.0<a href="#/soft-center.asp" class="btn" style="float:right;border-radius:3px;margin-right:5px;margin-top:0px;">返回</a></div>
 	<div class="content">
 		<span class="col" style="line-height:30px;width:700px">
 		Program:hiboy<br />
 		Interface:Hikaru Chang (i@rua.moe)<br />
 		Special thanks:fw867<br />
 		欢迎使用【家庭云提速】提速电信宽带。<br />
-    根据地区不同，日志内容包的内容可能会显示不全。<br />
+    根据地区不同，状态的内容可能会显示不全。<br />
 		家庭云APP下载地址: <a href="http://home.cloud.189.cn/" target="_blank">http://home.cloud.189.cn/</a><br />
 		抓取代码教程: <a href="http://koolshare.cn/thread-126377-1-1.html" target="_blank">http://koolshare.cn/thread-126377-1-1.html</a> | <a href="http://rt.cn2k.net/?p=389" target="_blank">http://rt.cn2k.net/?p=389</a><br />
 		关于本插件的BUG反馈以及建议：<a href="https://github.com/hikaruchang/telespeedup-koolsoft" target="_blank"><u>Github</u></a> | <a href="mailto:i@rua.moe" target="_blank"><u>Email</u></a>
 		</span>
 	</div>
 </div>
-<ul class="nav nav-tabs">
-	<li><a href="javascript:void(0);" onclick="tabSelect('app1');" id="app1-server1-jb-tab" class="active"><i class="icon-system"></i> 配置</a></li>
-	<li><a href="javascript:void(0);" onclick="tabSelect('app3');" id="app3-server1-rz-tab"><i class="icon-info"></i> 日志</a></li>
-</ul>
-<div class="box boxr1" style="margin-top: 0px;">
+
+<div class="box" style="margin-top: 0px;">
+	<div class="heading">状态</div>
+	<hr>
+	<div class="content">
+  <div id="telespeedup-status"></div>
+	<script type="text/javascript">
+		$('#telespeedup-status').forms([
+    { title: 'SN', text: dbus.telespeedup_sn },
+    { title: '提速包名称', text: dbus.telespeedup_prodName },
+    { title: '提速包代码', text: dbus.telespeedup_prodCode },
+    { title: '提速包时长（剩/总）', text: dbus.telespeedup_restMinutes + '分钟 / ' + dbus.telespeedup_totalMinutes + '分钟' },
+    { title: '上行速率', text: dbus.telespeedup_upRate + 'M → ' + dbus.telespeedup_upQosRate + 'M' },
+    { title: '下行速率', text: dbus.telespeedup_downRate + 'M → ' + dbus.telespeedup_downQosRate + 'M' },
+    { title: '重置剩余时间', text: dbus.telespeedup_remainingTime + '分钟' },
+		]);
+	</script>
+	</div>
+</div>
+
+<div class="box" style="margin-top: 0px;">
 	<div class="heading">配置</div>
 	<hr>
 	<div class="content">
@@ -340,19 +293,6 @@ function get_log(){
 	</div>
 </div>
 
-<div class="box boxr3">
-	<div class="heading">运行日志</div>
-	<div class="content">
-		<div class="section telespeedup_log content">
-			<script type="text/javascript">
-				y = Math.floor(docu.getViewSize().height * 0.55);
-				s = 'height:' + ((y > 300) ? y : 300) + 'px;display:block';
-				$('.section.telespeedup_log').append('<textarea class="as-script" name="telespeedup_log" id="_telespeedup_log" wrap="off" style="max-width:100%; min-width: 100%; margin: 0; ' + s + '" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"></textarea>');
-
-			</script>
-		</div>
-	</div>
-</div>
 <button type="button" value="Save" id="save-button" onclick="save()" class="btn btn-primary">保存 <i class="icon-check"></i></button>
 <button type="button" value="Cancel" id="cancel-button" onclick="javascript:reloadPage();" class="btn">取消 <i class="icon-cancel"></i></button>
 <span id="footer-msg" class="alert alert-warning" style="display: none;"></span>
