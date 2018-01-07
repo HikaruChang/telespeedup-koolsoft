@@ -18,7 +18,7 @@ dbus set softcenter_module_telespeedup_install=1
 dbus set softcenter_module_telespeedup_name=telespeedup
 dbus set softcenter_module_telespeedup_title=家庭云提速
 dbus set softcenter_module_telespeedup_description="家庭云提速电信宽带"
-dbus set softcenter_module_telespeedup_version=1.0.1
+dbus set softcenter_module_telespeedup_version=1.1
 
 # remove old files if exist
 find /etc/rc.d/ -name *telespeedup.sh* | xargs rm -rf

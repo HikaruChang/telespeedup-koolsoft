@@ -3,7 +3,6 @@ ACTION=$1
 scriptfilepath=$(cd "$(dirname "$0")"; pwd)/$(basename $0)
 scriptpath=$(cd "$(dirname "$0")"; pwd)
 scriptname=$(basename $0)
-logfile="/tmp/upload/telespeedup_log.txt"
 
 alias echo_date='echo $(date +%Y年%m月%d日\ %X)'
 export KSROOT=/koolshare
@@ -35,16 +34,13 @@ if [ "$1" = "o" ] ; then
 	return 0
 fi
 if [ "$1" = "x" ] ; then
-	if [ -f $relock ] ; then
-		exit 0
-	fi
 	telespeedup_renum=${telespeedup_renum:-"0"}
 	telespeedup_renum=`expr $telespeedup_renum + 1`
 	dbus set telespeedup_renum="$telespeedup_renum"
 	if [ "$telespeedup_renum" -gt "2" ] ; then
 		I=19
 		echo $I > $relock
-		while [ $I -gt 0 ]; do
+ 		while [ $I -gt 0 ]; do
 			I=$(($I - 1))
 			echo $I > $relock
 			sleep 60
@@ -112,13 +108,13 @@ killall -9 telespeedup
 dbus set telespeedup_sn=''
 dbus set telespeedup_prodName=''
 dbus set telespeedup_prodCode=''
-dbus set telespeedup_restMinutes='0'
-dbus set telespeedup_totalMinutes='0'
-dbus set telespeedup_upRate='0'
-dbus set telespeedup_upQosRate='0'
-dbus set telespeedup_downRate='0'
-dbus set telespeedup_downQosRate='0'
-dbus set telespeedup_remainingTime='0'
+dbus set telespeedup_restMinutes=''
+dbus set telespeedup_totalMinutes=''
+dbus set telespeedup_upRate=''
+dbus set telespeedup_upQosRate=''
+dbus set telespeedup_downRate=''
+dbus set telespeedup_downQosRate=''
+dbus set telespeedup_remainingTime=''
 
 eval $(ps -w | grep "telespeedup start_path" | grep -v grep | awk '{print "kill "$1";";}')
 eval $(ps -w | grep "telespeedup_config.sh keep" | grep -v grep | awk '{print "kill "$1";";}')
@@ -126,9 +122,6 @@ eval $(ps -w | grep "$scriptname keep" | grep -v grep | awk '{print "kill "$1";"
 }
 
 telespeedup_start () {
-
-[ -z "$check_Qos" ] && sleep 10 && exit
-[ -z "$Start_Qos" ] && sleep 10 && exit
 
 curltest=`which curl`
 if [ -z "$curltest" ] || [ ! -s "`which curl`" ] ; then
@@ -142,7 +135,7 @@ ln -sf /koolshare/scripts/telespeedup_config.sh /koolshare/bin/telespeedup
 chmod 777 /koolshare/bin/telespeedup
 eval "$telespeedup_path" start_path &
 sleep 2
-[ ! -z "$(ps -w | grep "/koolshare/bin/telespeedup" | grep -v grep )" ]  && telespeedup_restart o
+[ ! -z "$(ps -w | grep "/koolshare/bin/telespeedup" | grep -v grep )" ] && telespeedup_restart o
 [ -z "$(ps -w | grep "/koolshare/bin/telespeedup" | grep -v grep )" ] && sleep 10 && telespeedup_restart x
 
 telespeedup_get_status
@@ -152,21 +145,22 @@ eval "$scriptfilepath keep &"
 telespeedup_start_path () {
 
 # 主程序循环
-re_STAT="$(eval "$check_Qos")"
+re_STAT="$(eval "$check_Qos" | grep qosListResponse)"
 st_STAT="$(eval "$Start_Qos")"
 
 # 获取提速包数量
 qos_Info="$(echo "$re_STAT" | awk -F"/qosInfo" '{print NF-1}')"
+qos_Info_info="$(echo "$st_STAT" | awk -F"/qosInfo" '{print NF-1}')"
 [ -z "$qos_Info" ] && qos_Info=0
 if [[ "$qos_Info"x == "1"x ]]; then
 Info=1
 fi
 if [[ "$qos_Info" -ge 1 ]]; then
 # 提速包1
-qos_Info_1="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $1}')"
-qos_Info_1_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $1}')"
+qos_Info_1="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $1}')"
 qos_Info_x="$qos_Info_1"
-qos_Info_x_sn="$qos_Info_1_sn"
+qos_Info_1_info="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $1}')"
+qos_Info_x_info="$qos_Info_1_info"
 get_info
 dbus set telespeedup_prodName=$prod_Name
 dbus set telespeedup_prodCode=$prod_Code
@@ -180,10 +174,10 @@ dbus set telespeedup_remainingTime=$remaining_Time
 fi
 if [[ "$qos_Info" -ge 2 ]]; then
 # 提速包2
-qos_Info_2="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $2}')"
-qos_Info_2_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $2}')"
+qos_Info_2="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $2}')"
 qos_Info_x="$qos_Info_2"
-qos_Info_x_sn="$qos_Info_2_sn"
+qos_Info_2_info="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $2}')"
+qos_Info_x_info="$qos_Info_2_info"
 get_info
 dbus set telespeedup_prodName=$prod_Name
 dbus set telespeedup_prodCode=$prod_Code
@@ -197,10 +191,10 @@ dbus set telespeedup_remainingTime=$remaining_Time
 fi
 if [[ "$qos_Info" -ge 3 ]]; then
 # 提速包3
-qos_Info_3="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $3}')"
-qos_Info_3_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $3}')"
+qos_Info_3="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $3}')"
 qos_Info_x="$qos_Info_3"
-qos_Info_x_sn="$qos_Info_3_sn"
+qos_Info_3_info="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $3}')"
+qos_Info_x_info="$qos_Info_3_info"
 get_info
 dbus set telespeedup_prodName=$prod_Name
 dbus set telespeedup_prodCode=$prod_Code
@@ -214,10 +208,10 @@ dbus set telespeedup_remainingTime=$remaining_Time
 fi
 if [[ "$qos_Info" -ge 4 ]]; then
 # 提速包4
-qos_Info_4="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $4}')"
-qos_Info_4_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $4}')"
+qos_Info_4="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $4}')"
 qos_Info_x="$qos_Info_4"
-qos_Info_x_sn="$qos_Info_4_sn"
+qos_Info_4_info="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $4}')"
+qos_Info_x_info="$qos_Info_4_info"
 get_info
 dbus set telespeedup_prodName=$prod_Name
 dbus set telespeedup_prodCode=$prod_Code
@@ -231,10 +225,10 @@ dbus set telespeedup_remainingTime=$remaining_Time
 fi
 if [[ "$qos_Info" -ge 5 ]]; then
 # 提速包5
-qos_Info_5="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $5}')"
-qos_Info_5_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $5}')"
+qos_Info_5="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $5}')"
 qos_Info_x="$qos_Info_5"
-qos_Info_x_sn="$qos_Info_5_sn"
+qos_Info_5="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $5}')"
+qos_Info_x_info="$qos_Info_5_info"
 get_info
 dbus set telespeedup_prodName=$prod_Name
 dbus set telespeedup_prodCode=$prod_Code
@@ -258,19 +252,18 @@ dbus set telespeedup_upQosRate=$up_qos_rate
 dbus set telespeedup_downRate=$down_rate
 dbus set telespeedup_downQosRate=$down_qos_rate
 dbus set telespeedup_remainingTime=$remaining_Time
-
 #QOS_Start
-[ -z "$qos_sn" ] && qos_sn=0
+[ -z "$SN" ] && SN=0
 telespeedup_enable=`dbus get telespeedup_enable`
 [ -z $telespeedup_enable ] && telespeedup_enable=0 && dbus set telespeedup_enable=0
 while [[ "$telespeedup_enable" != 0 ]]
 do
 	if [[ "$STATUS"x != "Y"x ]]; then
 		QOS_Start
-		if [[ -z "$qos_sn" ]]; then
-			dbus set telespeedup_sn="启动错误！"
+		if [[ -z "$SN" ]]; then
+			dbus set telespeedup_sn='启动错误！'
 		else
-			dbus set telespeedup_sn=$qos_sn
+			dbus set telespeedup_sn=$SN
 			[ ! -z "$Heart_Qos" ] && QOS_Heart
 			sleep 57
 			QOS_Status
@@ -303,38 +296,34 @@ done
 get_info()
 {
 # 提速包名称
-prod_Name="$(echo "$qos_Info_x" | awk -F"\<prodName\>|\<\/prodName\>" '{if($2!="") print $2}')"
+prod_Name="$(echo "$qos_Info_x_info" | awk -F"\<prodName\>|\<\/prodName\>" '{if($2!="") print $2}')"
 
 # 提速包代码
-prod_Code="$(echo "$qos_Info_x" | awk -F"\<prodCode\>|\<\/prodCode\>" '{if($2!="") print $2}')"
+prod_Code="$(echo "$qos_Info_x_info" | awk -F"\<prodCode\>|\<\/prodCode\>" '{if($2!="") print $2}')"
 
 # 提速包总时间（分钟）
-total_Minutes="$(echo "$qos_Info_x" | awk -F"\<totalMinutes\>|\<\/totalMinutes\>" '{if($2!="") print $2}')"
+total_Minutes="$(echo "$qos_Info_x_info" | awk -F"\<totalMinutes\>|\<\/totalMinutes\>" '{if($2!="") print $2}')"
 
 # 提速包使用时间（分钟）
-used_Minutes="$(echo "$qos_Info_x" | awk -F"\<usedMinutes\>|\<\/usedMinutes\>" '{if($2!="") print $2}')"
+used_Minutes="$(echo "$qos_Info_x_info" | awk -F"\<usedMinutes\>|\<\/usedMinutes\>" '{if($2!="") print $2}')"
 
 # 提速包剩余时长（分钟）
-rest_Minutes="$(echo "$qos_Info_x" | awk -F"\<restMinutes\>|\<\/restMinutes\>" '{if($2!="") print $2}')"
+rest_Minutes="$(echo "$qos_Info_x_info" | awk -F"\<restMinutes\>|\<\/restMinutes\>" '{if($2!="") print $2}')"
 
 # 原本上行速率（M）
-up_rate="$(echo `expr $(echo "$qos_Info_x" | awk -F"\<upRate\>|\<\/upRate\>" '{if($2!="") print $2}') / 1024`)"
+up_rate="$(echo `expr $(echo "$qos_Info_x_info" | awk -F"\<upRate\>|\<\/upRate\>" '{if($2!="") print $2}') / 1024`)"
 
 # 提升后上行速率（M）
-up_qos_rate="$(echo `expr $(echo "$qos_Info_x" | awk -F"\<upQosRate\>|\<\/upQosRate\>" '{if($2!="") print $2}') / 1024`)"
+up_qos_rate="$(echo `expr $(echo "$qos_Info_x_info" | awk -F"\<upQosRate\>|\<\/upQosRate\>" '{if($2!="") print $2}') / 1024`)"
 
 # 原本下行速率（M）
-down_rate="$(echo `expr $(echo "$qos_Info_x" | awk -F"\<downRate\>|\<\/downRate\>" '{if($2!="") print $2}') / 1024`)"
+down_rate="$(echo `expr $(echo "$qos_Info_x_info" | awk -F"\<downRate\>|\<\/downRate\>" '{if($2!="") print $2}') / 1024`)"
 
 # 提升后下行速率（M）
-down_qos_rate="$(echo `expr $(echo "$qos_Info_x" | awk -F"\<downQosRate\>|\<\/downQosRate\>" '{if($2!="") print $2}') / 1024`)"
-
-# SN
-qos_sn="$(echo "$qos_Info_x_sn" | awk -F"\<qosSn\>|\<\/qosSn\>" '{if($2!="") print $2}')"
+down_qos_rate="$(echo `expr $(echo "$qos_Info_x_info" | awk -F"\<downQosRate\>|\<\/downQosRate\>" '{if($2!="") print $2}') / 1024`)"
 
 # 重置剩余时间
-remaining_Time="$(echo "$qos_Info_x" | awk -F"\<remainingTime\>|\<\/remainingTime\>" '{if($2!="") print $2}')"
-
+remaining_Time="$(echo "$qos_Info_x_info" | awk -F"\<remainingTime\>|\<\/remainingTime\>" '{if($2!="") print $2}')"
 }
 
 QOS_Status()
@@ -348,46 +337,44 @@ QOS_Status()
 #check_Qos_x="curl -s -H 'SessionKey: ""$Session_Key""' -H 'Signature: ""$Signa_ture""' -H 'Date: ""$GMT_Date""' -H 'Content-Type: text/xml; charset=utf-8' -H 'Host: api.cloud.189.cn' -H 'User-Agent: Apache-HttpClient/UNAVAILABLE (java 1.4)' 'http://api.cloud.189.cn/family/qos/checkQosAbility.action?familyId=""$family_Id""'"
 
 check_Qos_x="$(echo "$check_Qos"" -s ")"
-start_Qos_x="$(echo "$Start_Qos"" -s ")"
 
-re_STAT="$(eval "$check_Qos_x")"
-st_STAT="$(eval "$start_Qos_x")"
+re_STAT="$(eval "$check_Qos_x" | grep qosListResponse)"
 
 # 获取状态
 if [[ "$Info"x == "1"x ]]; then
 	# 提速包1
-	qos_Info_1="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $1}')"
-	qos_Info_1_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $1}')"
+	qos_Info_1="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $1}')"
 	qos_Info_x="$qos_Info_1"
-	qos_Info_x_sn="$qos_Info_1_sn"
+	qos_Info_1_info="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $1}')"
+	qos_Info_x_info="$qos_Info_1_info"
 fi
 if [[ "$Info"x == "2"x ]]; then
 	# 提速包2
-	qos_Info_2="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $2}')"
-	qos_Info_2_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $2}')"
+	qos_Info_2="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $2}')"
 	qos_Info_x="$qos_Info_2"
-	qos_Info_x_sn="$qos_Info_2_sn"
+	qos_Info_2_info="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $2}')"
+	qos_Info_x_info="$qos_Info_2_info"
 fi
 if [[ "$Info"x == "3"x ]]; then
 	# 提速包3
-	qos_Info_3="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $3}')"
-	qos_Info_3_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $3}')"
+	qos_Info_3="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $3}')"
 	qos_Info_x="$qos_Info_3"
-	qos_Info_x_sn="$qos_Info_3_sn"
+	qos_Info_3_info="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $3}')"
+	qos_Info_x_info="$qos_Info_3_info"
 fi
 if [[ "$Info"x == "4"x ]]; then
 	# 提速包4
-	qos_Info_4="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $4}')"
-	qos_Info_4_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $4}')"
+	qos_Info_4="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $4}')"
 	qos_Info_x="$qos_Info_4"
-	qos_Info_x_sn="$qos_Info_4_sn"
+	qos_Info_4_info="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $4}')"
+	qos_Info_x_info="$qos_Info_4_info"
 fi
 if [[ "$Info"x == "5"x ]]; then
 	# 提速包5
-	qos_Info_5="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $5}')"
-	qos_Info_5_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $5}')"
+	qos_Info_5="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $5}')"
 	qos_Info_x="$qos_Info_5"
-	qos_Info_x_sn="$qos_Info_5_sn"
+	qos_Info_5="$(echo "$re_STAT_info" | awk -F '/qosInfo' '{print $5}')"
+	qos_Info_x_info="$qos_Info_5_info"
 fi
 
 get_info
@@ -404,15 +391,22 @@ QOS_Start()
 #Signa_ture="$(echo "$Start_Qos" | grep -Eo "Signature:[ A-Za-z0-9_-]+" | cut -d ':' -f2 | sed -e "s/ //g" )"
 #GMT_Date="$(echo "$Start_Qos" | grep -Eo "Date:[ A-Za-z0-9_-]+,[ A-Za-z0-9_-]+:[0-9]+:[ A-Za-z0-9_-]+" | awk -F 'Date: ' '{print $2}')"
 
-dbus set telespeedup_sn=$qos_sn
+#start_Qos_x="curl -s -H 'SessionKey: ""$Session_Key""' -H 'Signature: ""$Signa_ture""' -H 'Date: ""$GMT_Date""' -H 'Content-Type: text/xml; charset=utf-8' -H 'Host: api.cloud.189.cn' -H 'User-Agent: Apache-HttpClient/UNAVAILABLE (java 1.4)' 'http://api.cloud.189.cn/family/qos/startQos.action?prodCode=""$prod_Code""'"
+
+start_Qos_x="$(echo "$Start_Qos"" -s ")"
+
+SN_STAT="$(eval "$start_Qos_x" | grep qosInfo)"
+
+SN="$(echo "$SN_STAT" | awk -F"\<qosSn\>|\<\/qosSn\>" '{if($2!="") print $2}')"
+
 sleep 3
 }
 
 QOS_Heart()
 {
 
-if [ "$qos_sn"x != "x" ] && [ "$qos_sn" != "0" ] ; then
-	Heart_Qos_x="$(echo "$Heart_Qos" | sed -e "s|^\(.*qosSn.*\)=[^=]*$|\1=$qos_sn|")"
+if [ "$SN"x != "x" ] && [ "$SN" != "0" ] ; then
+	Heart_Qos_x="$(echo "$Heart_Qos" | sed -e "s|^\(.*qosSn.*\)=[^=]*$|\1=$SN|")"
 	Heart_Qos_x="$(echo "$Heart_Qos_x""' -s ")"
 	eval "$Heart_Qos_x"
 
