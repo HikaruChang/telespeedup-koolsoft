@@ -240,14 +240,14 @@ function save(){
 
 </script>
 <div class="box">
-	<div class="heading">家庭云提速 1.0<a href="#/soft-center.asp" class="btn" style="float:right;border-radius:3px;margin-right:5px;margin-top:0px;">返回</a></div>
+	<div class="heading">家庭云提速 1.0.1<a href="#/soft-center.asp" class="btn" style="float:right;border-radius:3px;margin-right:5px;margin-top:0px;">返回</a></div>
 	<div class="content">
 		<span class="col" style="line-height:30px;width:700px">
-		Program:hiboy<br />
-		Interface:Hikaru Chang (i@rua.moe)<br />
-		Special thanks:fw867<br />
+		<strong>Program:hiboy</strong><br />
+		<strong>Interface:Hikaru Chang (i@rua.moe)</strong><br />
+		<strong>Special thanks:fw867</strong><br />
 		欢迎使用【家庭云提速】提速电信宽带。<br />
-    根据地区不同，状态的内容可能会显示不全。<br />
+    <font color='#FF0000'>根据地区不同，状态的内容可能会显示不全，以实际加速情况为准！！！</font><br />
 		家庭云APP下载地址: <a href="http://home.cloud.189.cn/" target="_blank">http://home.cloud.189.cn/</a><br />
 		抓取代码教程: <a href="http://koolshare.cn/thread-126377-1-1.html" target="_blank">http://koolshare.cn/thread-126377-1-1.html</a> | <a href="http://rt.cn2k.net/?p=389" target="_blank">http://rt.cn2k.net/?p=389</a><br />
 		关于本插件的BUG反馈以及建议：<a href="https://github.com/hikaruchang/telespeedup-koolsoft" target="_blank"><u>Github</u></a> | <a href="mailto:i@rua.moe" target="_blank"><u>Email</u></a>
