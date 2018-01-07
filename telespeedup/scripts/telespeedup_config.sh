@@ -152,8 +152,8 @@ eval "$scriptfilepath keep &"
 telespeedup_start_path () {
 
 # 主程序循环
-re_STAT="$(eval "$Start_Qos")"
-ck_STAT="$(eval "$check_Qos")"
+re_STAT="$(eval "$check_Qos")"
+st_STAT="$(eval "$Start_Qos")"
 
 # 获取提速包数量
 qos_Info="$(echo "$re_STAT" | awk -F"/qosInfo" '{print NF-1}')"
@@ -163,8 +163,8 @@ Info=1
 fi
 if [[ "$qos_Info" -ge 1 ]]; then
 # 提速包1
-qos_Info_1="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $1}')"
-qos_Info_1_sn="$(echo "$ck_STAT" | awk -F '/qosInfo' '{print $1}')"
+qos_Info_1="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $1}')"
+qos_Info_1_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $1}')"
 qos_Info_x="$qos_Info_1"
 qos_Info_x_sn="$qos_Info_1_sn"
 get_info
@@ -180,8 +180,8 @@ dbus set telespeedup_remainingTime=$remaining_Time
 fi
 if [[ "$qos_Info" -ge 2 ]]; then
 # 提速包2
-qos_Info_2="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $2}')"
-qos_Info_2_sn="$(echo "$ck_STAT" | awk -F '/qosInfo' '{print $2}')"
+qos_Info_2="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $2}')"
+qos_Info_2_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $2}')"
 qos_Info_x="$qos_Info_2"
 qos_Info_x_sn="$qos_Info_2_sn"
 get_info
@@ -197,8 +197,8 @@ dbus set telespeedup_remainingTime=$remaining_Time
 fi
 if [[ "$qos_Info" -ge 3 ]]; then
 # 提速包3
-qos_Info_3="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $3}')"
-qos_Info_3_sn="$(echo "$ck_STAT" | awk -F '/qosInfo' '{print $3}')"
+qos_Info_3="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $3}')"
+qos_Info_3_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $3}')"
 qos_Info_x="$qos_Info_3"
 qos_Info_x_sn="$qos_Info_3_sn"
 get_info
@@ -214,8 +214,8 @@ dbus set telespeedup_remainingTime=$remaining_Time
 fi
 if [[ "$qos_Info" -ge 4 ]]; then
 # 提速包4
-qos_Info_4="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $4}')"
-qos_Info_4_sn="$(echo "$ck_STAT" | awk -F '/qosInfo' '{print $4}')"
+qos_Info_4="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $4}')"
+qos_Info_4_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $4}')"
 qos_Info_x="$qos_Info_4"
 qos_Info_x_sn="$qos_Info_4_sn"
 get_info
@@ -231,8 +231,8 @@ dbus set telespeedup_remainingTime=$remaining_Time
 fi
 if [[ "$qos_Info" -ge 5 ]]; then
 # 提速包5
-qos_Info_5="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $5}')"
-qos_Info_5_sn="$(echo "$ck_STAT" | awk -F '/qosInfo' '{print $5}')"
+qos_Info_5="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $5}')"
+qos_Info_5_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $5}')"
 qos_Info_x="$qos_Info_5"
 qos_Info_x_sn="$qos_Info_5_sn"
 get_info
@@ -350,42 +350,42 @@ QOS_Status()
 check_Qos_x="$(echo "$check_Qos"" -s ")"
 start_Qos_x="$(echo "$Start_Qos"" -s ")"
 
-re_STAT="$(eval "$start_Qos_x")"
-ck_STAT="$(eval "$check_Qos_x")"
+re_STAT="$(eval "$check_Qos_x")"
+st_STAT="$(eval "$start_Qos_x")"
 
 # 获取状态
 if [[ "$Info"x == "1"x ]]; then
 	# 提速包1
-	qos_Info_1="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $1}')"
-	qos_Info_1_sn="$(echo "$ck_STAT" | awk -F '/qosInfo' '{print $1}')"
+	qos_Info_1="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $1}')"
+	qos_Info_1_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $1}')"
 	qos_Info_x="$qos_Info_1"
 	qos_Info_x_sn="$qos_Info_1_sn"
 fi
 if [[ "$Info"x == "2"x ]]; then
 	# 提速包2
-	qos_Info_2="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $2}')"
-	qos_Info_2_sn="$(echo "$ck_STAT" | awk -F '/qosInfo' '{print $2}')"
+	qos_Info_2="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $2}')"
+	qos_Info_2_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $2}')"
 	qos_Info_x="$qos_Info_2"
 	qos_Info_x_sn="$qos_Info_2_sn"
 fi
 if [[ "$Info"x == "3"x ]]; then
 	# 提速包3
-	qos_Info_3="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $3}')"
-	qos_Info_3_sn="$(echo "$ck_STAT" | awk -F '/qosInfo' '{print $3}')"
+	qos_Info_3="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $3}')"
+	qos_Info_3_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $3}')"
 	qos_Info_x="$qos_Info_3"
 	qos_Info_x_sn="$qos_Info_3_sn"
 fi
 if [[ "$Info"x == "4"x ]]; then
 	# 提速包4
-	qos_Info_4="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $4}')"
-	qos_Info_4_sn="$(echo "$ck_STAT" | awk -F '/qosInfo' '{print $4}')"
+	qos_Info_4="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $4}')"
+	qos_Info_4_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $4}')"
 	qos_Info_x="$qos_Info_4"
 	qos_Info_x_sn="$qos_Info_4_sn"
 fi
 if [[ "$Info"x == "5"x ]]; then
 	# 提速包5
-	qos_Info_5="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $5}')"
-	qos_Info_5_sn="$(echo "$ck_STAT" | awk -F '/qosInfo' '{print $5}')"
+	qos_Info_5="$(echo "$st_STAT" | awk -F '/qosInfo' '{print $5}')"
+	qos_Info_5_sn="$(echo "$re_STAT" | awk -F '/qosInfo' '{print $5}')"
 	qos_Info_x="$qos_Info_5"
 	qos_Info_x_sn="$qos_Info_5_sn"
 fi
@@ -427,7 +427,6 @@ start)
 	dbus set telespeedup_status=0
 	telespeedup_close
 	telespeedup_check
-	echo XU6J03M6 >> $logfile
 	http_response '设置已保存！切勿重复提交！页面将在1秒后刷新'
 	;;
 check)
