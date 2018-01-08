@@ -194,7 +194,7 @@ function toggleVisibility(whichone) {
 
 function save(){
 	var para_chk = ["telespeedup_enable"];
-	var para_inp = ["telespeedup_Info", "telespeedup_check_Qos", "telespeedup_Start_Qos", "telespeedup_Heart_Qos"];
+	var para_inp = ["telespeedup_Info", "telespeedup_check_Qos", "telespeedup_Start_Qos", "telespeedup_Heart_Qos", "telespeedup_Stop_Qos"];
 	// collect data from checkbox
 	for (var i = 0; i < para_chk.length; i++) {
 		dbus[para_chk[i]] = E('_' + para_chk[i] ).checked ? '1':'0';
@@ -209,7 +209,7 @@ function save(){
 		}
 	}
   // data need base64 encode
-	var paras_base64 = ["telespeedup_check_Qos", "telespeedup_Start_Qos", "telespeedup_Heart_Qos"];
+	var paras_base64 = ["telespeedup_check_Qos", "telespeedup_Start_Qos", "telespeedup_Heart_Qos", "telespeedup_Stop_Qos"];
 	for (var i = 0; i < paras_base64.length; i++) {
 		if (typeof(E('_' + paras_base64[i] ).value) == "undefined"){
 			dbus[paras_base64[i]] = "";
@@ -240,12 +240,11 @@ function save(){
 
 </script>
 <div class="box">
-	<div class="heading">家庭云提速 1.2.1<a href="#/soft-center.asp" class="btn" style="float:right;border-radius:3px;margin-right:5px;margin-top:0px;">返回</a></div>
+	<div class="heading">家庭云提速 1.3<a href="#/soft-center.asp" class="btn" style="float:right;border-radius:3px;margin-right:5px;margin-top:0px;">返回</a></div>
 	<div class="content">
 		<span class="col" style="line-height:30px;width:700px">
-		<strong>Program:hiboy</strong><br />
-		<strong>Interface:Hikaru Chang (i@rua.moe)</strong><br />
-		<strong>Special thanks:fw867</strong><br />
+		<strong>By: Hikaru Chang (i@rua.moe)</strong><br />
+		<strong>Special thanks:fw867、hiboy</strong><br />
 		欢迎使用【家庭云提速】提速电信宽带。<br />
     <font color='#FF0000'>根据地区不同，状态的内容可能会显示不全，以实际加速情况为准！！！</font><br />
 		家庭云APP下载地址: <a href="http://home.cloud.189.cn/" target="_blank">http://home.cloud.189.cn/</a><br />
@@ -287,6 +286,7 @@ function save(){
 		{ title: 'Check代码', name: 'telespeedup_check_Qos', type: 'textarea', value: Base64.decode(dbus.telespeedup_check_Qos) ||"",suffix: ' 请填写Check代码，例如：curl -H \'SessionKey: .....', style: 'width: 100%; height:150px;' },
 		{ title: 'Start代码', name: 'telespeedup_Start_Qos', type: 'textarea', value: Base64.decode(dbus.telespeedup_Start_Qos) ||"",suffix: ' 请填写Start代码，例如：curl -H \'SessionKey: .....', style: 'width: 100%; height:150px;' },
 		{ title: 'Heart代码', name: 'telespeedup_Heart_Qos', type: 'textarea', value: Base64.decode(dbus.telespeedup_Heart_Qos) ||"",suffix: ' 选填代码，Start后没提速可尝试填入，例如：curl -H \'SessionKey: .....', style: 'width: 100%; height:150px;' },
+    { title: 'Stop代码', name: 'telespeedup_Stop_Qos', type: 'textarea', value: Base64.decode(dbus.telespeedup_Stop_Qos) ||"",suffix: ' 选填代码，如果担心关闭后一直扣时间，请填写，例如：curl -H \'SessionKey: .....', style: 'width: 100%; height:150px;' },
 		]);
 		$('#_telespeedup_enable').parent().parent().css("margin-left","-10px");
 	</script>
