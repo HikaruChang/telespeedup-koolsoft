@@ -8,7 +8,7 @@
 # See /LICENSE for more information.
 #
 
-START=99
+START=86
 STOP=15
 
 source /koolshare/scripts/base.sh
