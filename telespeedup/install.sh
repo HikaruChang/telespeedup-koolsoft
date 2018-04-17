@@ -5,7 +5,7 @@ eval `dbus export telespeedup_`
 
 sed -i '/mirrors.ustc.edu.cn/d' /etc/hosts
 echo '218.104.71.170 mirrors.ustc.edu.cn' >> /etc/hosts
-opkg update && opkg install bash curl &
+opkg update && opkg install bash &
 mkdir -p $KSROOT/init.d
 mkdir -p /tmp/upload
 
@@ -26,6 +26,6 @@ dbus set softcenter_module_telespeedup_install=1
 dbus set softcenter_module_telespeedup_name=telespeedup
 dbus set softcenter_module_telespeedup_title=家庭云提速
 dbus set softcenter_module_telespeedup_description="家庭云提速电信宽带"
-dbus set softcenter_module_telespeedup_version=1.3
+dbus set softcenter_module_telespeedup_version=1.3.1
 
 return 0
